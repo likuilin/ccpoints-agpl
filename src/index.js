@@ -6,6 +6,7 @@ const morgan = require("morgan");
 const minify = require("html-minifier").minify;
 const cookieSession = require("cookie-session");
 const bodyParser = require("body-parser");
+const crypto = require("crypto");
 
 const minifyOptions = {
     removeComments:            true,
@@ -38,7 +39,7 @@ const {db} = require("./db.js");
     for (let page of fs.readdirSync("views")) {
         if (!page.endsWith(".ejs")) continue;
         app.get("/" + page.slice(0, -4), (req, res, next) => {
-            ejs.renderFile("./views/" + page, {req, res, db, ...helpers}, {async: true}, (err, strPromise) => {
+            ejs.renderFile("./views/" + page, {req, res, db, crypto, ...helpers}, {async: true}, (err, strPromise) => {
                 if (err) return next(err);
                 strPromise.then(str => {
                     res.send(minify(str, minifyOptions));

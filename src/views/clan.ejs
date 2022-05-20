@@ -43,10 +43,10 @@
             } else if (clan.points > result.points) {
               %>This clan <b>loses the war</b> by points (%><%= clan.points + " > " + result.points %>)<%
             } else {
-              // seeded random using hmac
+              // seeded random using sha256, based on preparationStartTime which neither clan controls
               const pair = ([clan.clantag, otag]).sort();
               const seed = data.preparationStartTime + "," + pair.join(",");
-              const hash = hmac().update(seed).digest();
+              const hash = crypto.createHash('sha256').update(seed).digest();
               const winner = pair[hash[0] & 1];
               if (winner === clan.clantag) {
                 %>This clan <b>wins the war</b> by random coin flip (%><%= clan.points + " = " + result.points %>)<%
@@ -55,8 +55,9 @@
               }
               %> (<a href="#show" onclick="document.getElementById('flipdetails').style.display='inline'">Show Proof</a>)
               <span id="flipdetails" style="display: none;"><br /><br />
-              Hashed data: <tt><%= seed %></tt><br />
+              Hashed data (war time and sorted tags): <tt><%= seed %></tt><br />
               Result hash: <tt><%= hash.toString('hex') %></tt><br />
+              First byte of hash: <tt><%= hash[0] %></tt> is <tt><%= (hash[0] & 1) ? "odd" : "even" %></tt> so <tt><%= (hash[0] & 1) ? "second" : "first" %></tt> clan in sorted list below wins.<br />
               Sorted tags: <tt><%= JSON.stringify(pair) %></tt>
               </span><%;
             }
