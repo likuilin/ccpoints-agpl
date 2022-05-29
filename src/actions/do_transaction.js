@@ -10,12 +10,13 @@ module.exports = async (req, res) => {
 
         const prev = await t.oneOrNone("select * from transactions where transid=$[transid] for update;", req.body);
         if (!prev) return req.send("Transaction not found");
-        
+
+        if (!isFinite(req.body.points)) throw new Error("Points value not numeric");
         if (req.body.warid === "") req.body.warid = null;
         if (req.body.pubnote === "") req.body.pubnote = null;
         if (req.body.privnote === "") req.body.privnote = null;
 
-        const trans = await t.one("update transactions set ts=$[ts], warid=$[warid], pubnote=$[pubnote], privnote=$[privnote], points=$[points] where transid=$[transid] returning *", req.body);
+        const trans = await t.one("update transactions set ts=$[ts], warid=$[warid], pubnote=$[pubnote], privnote=$[privnote], points=$[points] where transid=$[transid] returning *", {...req.body, points: Math.floor(req.body.points * 1000)});
         if (trans.deleted) throw new Error("Editing a deleted transaction");
 
         const clan = await t.one("update clans set points=points+$[diff] where clantag=$[clantag] returning points;", {

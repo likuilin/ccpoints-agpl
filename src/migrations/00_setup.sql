@@ -43,6 +43,7 @@ create table clans (
         */
     points int not null default 0
         -- only a memoization, completely dependent data
+        -- note: fixed point, actual points is this divided by 1000
 );
 create index on clans (active, clanname);
 create index on clans (active, lastchecked);

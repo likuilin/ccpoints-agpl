@@ -17,7 +17,7 @@ module.exports = async (req, res) => {
             if (!req.body[clantag + "_include"]) return;
             count++;
 
-            let points = +req.body[clantag + "_value"];
+            let points = req.body[clantag + "_value"] * 1000;
             if (!isFinite(points)) throw new Error("Points value not numeric for " + clantag);
             let warid = req.body[clantag + "_warid"];
             let note = null;

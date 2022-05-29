@@ -63,4 +63,13 @@ const clashAPI = async (url, retry=false) => {
     }
 };
 
-module.exports = {requirePerm, formatTag, goBack, hmac, failLog, invalidate, setValid, clashAPI};
+const pointsToFixed = pts => {
+  // display as integer if possible, otherwise decimal with least trailing zeros
+  pts = +pts;
+  if (!isFinite(pts)) throw new Error("Points non-numeric");
+  pts = (pts/1000).toFixed(3);
+  if (pts.includes(".")) pts = pts.replace(/\.?0*$/, '');
+  return pts;
+};
+
+module.exports = {requirePerm, formatTag, goBack, hmac, failLog, invalidate, setValid, clashAPI, pointsToFixed};

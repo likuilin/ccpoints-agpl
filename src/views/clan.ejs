@@ -6,6 +6,7 @@
 
   const clan = await db.oneOrNone("select * from clans where clantag=$[tag]", {tag: formatTag(req.query.tag)});
   if (!clan) { %>Clan not found.<% } else {
+    clan.displayPoints = pointsToFixed(clan.points);
 %>
   <%- await include("partials/header.ejs", {req, res, title: "Clan " + clan.clanname}) %>
   <h3>Viewing Clan</h3>
@@ -13,7 +14,7 @@
     <b>Clan Name</b>: <%= clan.clanname %><br />
     <b>Clan Tag</b>: <%= clan.clantag %><br />
     <br />
-    <b>Point Balance</b>: <%= clan.points %><br />
+    <b>Point Balance</b>: <%= clan.displayPoints %><br />
     <br />
     <b>Official</b>: <%= clan.active ? "Yes" : "No" %>
   </p>
@@ -28,6 +29,7 @@
     }
     if (data.state === "preparation" || data.state === "inWar") {
       let result = await db.oneOrNone("select * from clans where clantag=$[clantag]", {clantag: formatTag(data.opponent.tag)});
+      if (result) result.displayPoints = pointsToFixed(result.points);
       const otag = formatTag(data.opponent.tag);
       const oname = data.opponent.name;
       %>
@@ -39,9 +41,9 @@
             %> is an <b>official match</b><br /><br /><%
             // calculate winner
             if (clan.points < result.points) {
-              %>This clan <b>wins the war</b> by points (%><%= clan.points + " < " + result.points %>)<%
+              %>This clan <b>wins the war</b> by points (%><%= clan.displayPoints + " < " + result.displayPoints %>)<%
             } else if (clan.points > result.points) {
-              %>This clan <b>loses the war</b> by points (%><%= clan.points + " > " + result.points %>)<%
+              %>This clan <b>loses the war</b> by points (%><%= clan.displayPoints + " > " + result.displayPoints %>)<%
             } else {
               // seeded random using sha256, based on preparationStartTime which neither clan controls
               const pair = ([clan.clantag, otag]).sort();
@@ -49,9 +51,9 @@
               const hash = crypto.createHash('sha256').update(seed).digest();
               const winner = pair[hash[0] & 1];
               if (winner === clan.clantag) {
-                %>This clan <b>wins the war</b> by random coin flip (%><%= clan.points + " = " + result.points %>)<%
+                %>This clan <b>wins the war</b> by random coin flip (%><%= clan.displayPoints + " = " + result.displayPoints %>)<%
               } else {
-                %>This clan <b>loses the war</b> by random coin flip (%><%= clan.points + " = " + result.points %>)<%
+                %>This clan <b>loses the war</b> by random coin flip (%><%= clan.displayPoints + " = " + result.displayPoints %>)<%
               }
               %> (<a href="#show" onclick="document.getElementById('flipdetails').style.display='inline'">Show Proof</a>)
               <span id="flipdetails" style="display: none;"><br /><br />
@@ -105,7 +107,7 @@
           <% if (seeEdit) { %><td><%= row.transid %></td><% } %>
           <td><%= row.ts.toISOString() %></td>
           <td><%- war %></td>
-          <td class="center redgreen"><%= row.points %></td>
+          <td class="center redgreen"><%= pointsToFixed(row.points) %></td>
           <td><%= row.pubnote %></td>
           <% if (seePrivate && row.privnote) { %><td class="bg-gray">Private Note: <%= row.privnote %></td><% }
           else { %><td></td><% } %>

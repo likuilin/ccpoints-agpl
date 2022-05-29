@@ -8,11 +8,12 @@ module.exports = async (req, res) => {
     await db.tx("do_record", async t => {
         await failLog(req, db, t, "record");
 
+        if (!isFinite(req.body.points)) throw new Error("Points value not numeric");
         if (req.body.warid === "") req.body.warid = null;
         if (req.body.pubnote === "") req.body.pubnote = null;
         if (req.body.privnote === "") req.body.privnote = null;
 
-        const trans = await t.one("insert into transactions (clantag, ts, warid, pubnote, privnote, points) values ($[clantag], $[ts], $[warid], $[pubnote], $[privnote], $[points]) returning *", req.body);
+        const trans = await t.one("insert into transactions (clantag, ts, warid, pubnote, privnote, points) values ($[clantag], $[ts], $[warid], $[pubnote], $[privnote], $[points]) returning *", {...req.body, points: Math.floor(req.body.points * 1000)});
 
         const clan = await t.one("update clans set points=points+$[diff] where clantag=$[clantag] returning points;", {
             clantag: trans.clantag,

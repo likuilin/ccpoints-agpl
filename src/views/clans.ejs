@@ -12,7 +12,7 @@
       <tr>
         <td><%= clantag %></td>
         <td><a href="/clan?tag=<%= clantag %>"><%= clanname %></a></td>
-        <td><%= points %></td>
+        <td><%= pointsToFixed(points) %></td>
       </tr>
     <% } %>
   </tbody>
